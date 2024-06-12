@@ -25,6 +25,21 @@ for record in data:
     session.add(model(id=record.get('pk'), **record.get('fields')))
 session.commit()
 
+def get_shops():
+    books = session.query(Book, Publisher, Stock, Shop, Sale).select_from(Book).join(Publisher).join(Stock).join(Shop).join(Sale)
+    return books
+
+def get_name(publisher_name):
+    if publisher_name.isdigit():
+        publisher_name = int(publisher_name)
+        for book, publisher, stock, shop, sale in get_shops():
+            if publisher.id == publisher_name:
+                print('Название книги:', book.title, 'Цена:', sale.price, 'Дата:', sale.date_sale, 'Магазин:', shop.name)
+    else:
+        for book, publisher, stock, shop, sale in get_shops():
+            if publisher.name == publisher_name:
+                print('Название книги:', book.title, 'Цена:', sale.price, 'Дата:', sale.date_sale, 'Магазин:', shop.name)
+
 session.close()
 
 if __name__ == '__main__':
@@ -33,21 +48,5 @@ if __name__ == '__main__':
           '2. Pearson\n'
           '3. Microsoft Press\n'
           '4. No starch press\n')
-    name_publisher = int(input('Введите номер издателя:'))
-    if name_publisher < 1 or name_publisher > 4:
-        print('Такого издателя нет')
-        exit()
-
-    for publisher in session.query(Publisher).filter(Publisher.id == name_publisher).all():
-        for book in session.query(Book).filter(Book.id_publisher == name_publisher).all():
-            a = book.title
-            for sale in session.query(Sale).filter(Sale.id_stock == Stock.id, Stock.id_book == book.id).all():
-                c = sale.price
-                d = sale.date_sale
-                e = book.id
-                #print(a, e, c, d)
-                for stock in session.query(Stock).filter(Stock.id == Sale.id_stock, Sale.id == sale.id).all():
-                    # print(stock.id)
-                    for shop in session.query(Shop).filter(Shop.id == Stock.id_shop, Stock.id == stock.id).all():
-                        b = shop.name
-                        print('Название книги:', a,'ID:', e,'Цена:', c, 'Дата:', d, 'Магазин:', b)
+    get_name(publisher_name = input('Введите имя издателя:'))
+    get_shops()
